@@ -81,8 +81,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             super.onPostExecute(sisters);
             data.clear();
             data.addAll(sisters);
+            page++;
         }
 
-
+        @Override protected void onCancelled(){
+            super.onCancelled();
+            sisterTask = null;
+        }
+    }
+    @Override protected void onDestroy(){
+        super.onDestroy();
+        sisterTask.cancel(true);
     }
 }
