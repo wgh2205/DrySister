@@ -4,9 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -15,13 +17,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button showBtn;
     private Button refreshBtn;
     private ImageView showImg;
+    private TextView tv_name;
+
     private ArrayList<Sister> data;
     private int curPos = 0;
-    private int page =1;
+    private int page = 1;
     private  PictureLoader loader;
     private SisterApi sisterApi;
     private SisterTask sisterTask;
     private ArrayList<String> urls;
+
+    private SisterLoader mSisterLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         sisterApi =new SisterApi();
         loader = new PictureLoader();
+        mSisterLoader = SisterLoader.getInstance(MainActivity.this);
         initData();
         initUI();
     }
@@ -42,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         showBtn = findViewById(R.id.btn_show);
         refreshBtn = findViewById(R.id.btn_refresh);
         showImg =  findViewById(R.id.img_show);
+        tv_name = findViewById(R.id.tv_name);
         showBtn.setOnClickListener(this);
         refreshBtn.setOnClickListener(this);
     }
@@ -53,7 +61,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (curPos > 9) {
                         curPos = 0;
                     }
-                    loader.load(showImg, data.get(curPos).getUrl());
+ //                   loader.load(showImg, data.get(curPos).getUrl());
+                    mSisterLoader.bindBitmap(data.get(curPos).getUrl(),showImg,400,400);
+                    tv_name.setText("第 "+page+"页"+ " | "+"第 "+curPos+"张");
                     curPos++;
                 }
                 break;
@@ -61,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 page++;
                 new  SisterTask(page).execute();
                 curPos = 0;
+                Log.v("page:", ""+page);
+                tv_name.setText("第 "+page+"页"+ " | "+"第 "+curPos+"张");
                 break;
         }
     }
@@ -91,6 +103,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     @Override protected void onDestroy(){
         super.onDestroy();
-        sisterTask.cancel(true);
+        //sisterTask.cancel(true);
+        if (sisterTask != null) {
+            sisterTask.cancel(true);
+        }
     }
 }
