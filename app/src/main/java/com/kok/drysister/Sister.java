@@ -94,7 +94,7 @@ public class Sister {
         this.url = url;
     }
 
-    public boolean isUsed() {
+    public boolean getUsed() {
         return used;
     }
 

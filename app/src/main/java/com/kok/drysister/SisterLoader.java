@@ -24,7 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogRecord;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Size;
+
+/**
+ * 图片加载的主要控制类
+ */
 
 public class SisterLoader {
     private static final String TAG = "SisterLoader";
@@ -41,6 +44,9 @@ public class SisterLoader {
     private MemoryCacheHelper mMemoryCacheHelper;
     private DiskCacheHelper mDiskCacheHelper;
 
+    /**
+     * 线程工程创建线程
+     */
     private static final ThreadFactory mFactory =new ThreadFactory() {
         private final AtomicInteger mAtomicInteger = new AtomicInteger(1);
         @Override
@@ -48,10 +54,10 @@ public class SisterLoader {
             return new Thread(r, "SisterLoader#" + mAtomicInteger.getAndIncrement());
         }
     };
+    //线程池管理线程
     public static final Executor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(
             CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TimeUnit.SECONDS,
-            new LinkedBlockingDeque<Runnable>(), mFactory
-    );
+            new LinkedBlockingDeque<Runnable>(), mFactory);
 
     private Handler mMainHandler = new Handler(Looper.getMainLooper()){
         @Override
@@ -63,7 +69,7 @@ public class SisterLoader {
             params.width = SizeUtils.dp2px(mContext.getApplicationContext(),result.reqWidth);
             params.height = SizeUtils.dp2px(mContext.getApplicationContext(), result.reqHeight);
             resultImage.setLayoutParams(params);
-            resultImage.setImageBitmap(result.bitmap);
+            //resultImage.setImageBitmap(result.bitmap);
             String uri = (String) resultImage.getTag(TAG_KEY_URI);
             if (uri.equals(result.uri)) {
                 resultImage.setImageBitmap(result.bitmap);
@@ -73,7 +79,7 @@ public class SisterLoader {
         }
     };
 
-    public SisterLoader(Context context) {
+    private SisterLoader(Context context) {
         mContext = context.getApplicationContext();
         mMemoryCacheHelper = new MemoryCacheHelper(mContext);
         mDiskCacheHelper = new DiskCacheHelper(mContext);
@@ -108,30 +114,33 @@ public class SisterLoader {
                 return bitmap;
             }
             //3.磁盘中找不到，加载网络图片
-            Log.d(TAG, "加载网络上的图片，URL：" + url);
-            byte[] bytes= NetworkHelper.downLoadUrlToStream(url);
-            if ( bytes != null) {
+            if (NetworkUtils.isAvailable(mContext)) {
+                Log.d(TAG, "加载网络上的图片，URL：" + url);
+                byte[] bytes= NetworkHelper.downLoadUrlToStream(url);
+                //如果网络数据加载成功往硬盘缓存一份
                 bitmap = mDiskCacheHelper.saveImgByte(key, reqWidth, reqHeight, NetworkHelper.downLoadUrlToStream(url));
-            } else {
-                Log.d(TAG, "加载网络上的图片失败！！！");
-                //Resources resources = mContext.getResources();
-                // bitmap = BitmapFactory.decodeResource(resources,R.mipmap.miss2333);
-               // BitmapDrawable bitmapDrawable = (BitmapDrawable) mContext.getResources().getDrawable(R.drawable.miss2333);;
-             //   bitmap = mDiskCacheHelper.saveImgByte(key2, reqWidth, reqHeight,SizeUtils.image2Bytes(resources.getDrawable(R.raw.miss2333, null)));
-                String URL_DEFAULT = "http://imgsrc.baidu.com/forum/pic/item/bbbf252dd42a28345165055255b5c9ea17cebf8a.jpg";
-                String key2 = NetworkHelper.hashKeyFromUrl(URL_DEFAULT);
 
-                bitmap = mDiskCacheHelper.saveImgByte(key2, reqWidth, reqHeight, NetworkHelper.downLoadUrlToStream(URL_DEFAULT));
+                /*                if ( bytes != null) {
+                    //如果网络数据加载成功往硬盘缓存一份
+                    bitmap = mDiskCacheHelper.saveImgByte(key, reqWidth, reqHeight, NetworkHelper.downLoadUrlToStream(url));
+                } */
 
-
+                /*else {
+                    Log.d(TAG, "加载网络上的图片失败！！！");
+                    //Resources resources = mContext.getResources();
+                    // bitmap = BitmapFactory.decodeResource(resources,R.mipmap.miss2333);
+                    // BitmapDrawable bitmapDrawable = (BitmapDrawable) mContext.getResources().getDrawable(R.drawable.miss2333);;
+                    //   bitmap = mDiskCacheHelper.saveImgByte(key2, reqWidth, reqHeight,SizeUtils.image2Bytes(resources.getDrawable(R.raw.miss2333, null)));
+                    String URL_DEFAULT = R.string.defaultUrl;
+                    String key2 = NetworkHelper.hashKeyFromUrl(URL_DEFAULT);
+                    bitmap = mDiskCacheHelper.saveImgByte(key2, reqWidth, reqHeight, NetworkHelper.downLoadUrlToStream(URL_DEFAULT));
+                }*/
             }
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
         if (bitmap == null && !mDiskCacheHelper.getIsDiskCacheCreate()) {
-            Log.w(TAG, "磁盘缓存未创建！！！" );
+            Log.w(TAG, "磁盘缓存创建失败！！！" );
             bitmap = NetworkHelper.downLoadBitmapFromUrl(url);
         }
         return bitmap;
@@ -144,9 +153,7 @@ public class SisterLoader {
      * @param reqWidth
      * @param reqHeight
      */
-    public void bindBitmap(final String url, final ImageView imageView,
-                           final int reqWidth, final int reqHeight) {
-        final String key = NetworkHelper.hashKeyFromUrl(url);
+    public void bindBitmap(final String url, final ImageView imageView, final int reqWidth, final int reqHeight) {
         imageView.setTag(TAG_KEY_URI, url);
         final Runnable loadBitmapTask = new Runnable() {
             @Override

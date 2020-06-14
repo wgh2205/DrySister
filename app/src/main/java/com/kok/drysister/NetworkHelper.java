@@ -61,8 +61,8 @@ public class NetworkHelper {
      * @return
      */
     public static  byte[] downLoadUrlToStream(String picUrl){
-        InputStream mInputStream;
-        ByteArrayOutputStream mOutputStream;
+        InputStream mInputStream = null;
+        ByteArrayOutputStream mOutputStream = null;
         try{
             URL url=new URL(picUrl);
             HttpURLConnection connection;
@@ -79,12 +79,12 @@ public class NetworkHelper {
                 }
                 byte[] results = mOutputStream.toByteArray();
 
-                if (mInputStream != null) {
+/*                if (mInputStream != null) {
                     mInputStream.close();
                 }
                 if (mInputStream != null) {
                     mOutputStream.close();
-                }
+                }*/
                 return results;
             }
         } catch (MalformedURLException e) {
@@ -94,8 +94,21 @@ public class NetworkHelper {
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-
+            try {
+                if (mInputStream != null) {
+                    mInputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            try {
+                if (mOutputStream != null) {
+                    mOutputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return null;
     }
 
@@ -105,7 +118,7 @@ public class NetworkHelper {
      * @return
      */
     public static String hashKeyFromUrl(String url){
-        String cacheKey = null;
+        String cacheKey = new String();
 
         try{
             final MessageDigest mDigest = MessageDigest.getInstance("MD5");

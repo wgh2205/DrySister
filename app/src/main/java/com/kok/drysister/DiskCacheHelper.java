@@ -112,14 +112,14 @@ public class DiskCacheHelper {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new RuntimeException("不能再主线程中做网络操作!");
         }
-        if (mDiskLruCache == null) {
+        if (mDiskLruCache == null || bytes == null) {
             return null;
         }
         try{
             DiskLruCache.Editor editor = mDiskLruCache.edit(key);
             if (editor != null) {
                 OutputStream outputStream = editor.newOutputStream(DISK_CACHE_INDEX);
-                outputStream.write(bytes);
+                 outputStream.write(bytes);
                 outputStream.flush();
                 editor.commit();
                 outputStream.close();
