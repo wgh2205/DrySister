@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         sisterApi =new SisterApi();
         loader = new PictureLoader();
+        CrashHandler.getInstance().init(this);
         mSisterLoader = SisterLoader.getInstance(MainActivity.this);
         mSisterDBHelper = SisterDBHelper.getInstance(MainActivity.this);
         initData();

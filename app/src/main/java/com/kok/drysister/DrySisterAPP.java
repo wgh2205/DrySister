@@ -10,9 +10,10 @@ public class DrySisterAPP extends Application {
     public void onCreate() {
         super.onCreate();
         context = this;
+        CrashHandler.getInstance().init(this);
     }
 
     public static Context getContext() {
-        return context;
+        return (DrySisterAPP)context;
     }
 }
